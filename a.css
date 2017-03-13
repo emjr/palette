@@ -1,0 +1,91 @@
+.invisible { visibility: hidden; } 
+
+html, button, input, select, textarea {
+	font-size:100%;
+	font-family: Geneva, Tahoma, sans-serif;
+	color:#000;
+}
+html, body {
+	margin:0 auto;
+}
+html {
+	line-height:1.4;
+}
+body {
+	width:90%;
+	max-width:1200px;
+	background:#fefdfc;
+	padding:1em 2em;
+}
+input, select, textarea {
+	border:none;
+	background:#fff;
+	padding:.25em;
+}
+#clearinput {
+	background:transparent;
+	color:darkred;
+	border:none;
+}
+header {
+	margin:-1em -2em 1em;
+}
+header p, header table, caption {
+	color:#fff;
+	background:#000;
+}
+header p {
+	margin:0;
+	padding:1em 1em .5em;
+	font-size:200%;
+}
+header table {
+	margin:0;
+	width:100%;
+	border:none;
+}
+header th {
+	text-transform: uppercase;
+}
+table {
+	border-collapse: collapse;
+	font-family:Consolas, 'Source Code Pro', 'Courier New', Courier, monospace;
+	margin:1em 0;
+	width:100%;
+}
+caption, td {
+	padding:5px 10px;
+}
+th small {
+	color:#808080;
+	font-weight: normal;
+}
+td {
+	vertical-align: top;
+	text-align: center;
+}
+.tint2 div,
+.tint1 div,
+.core div,
+.shade1 div,
+.shade2 div {
+	width:50px;
+	height:25px;
+	margin:auto;
+}
+.core div {
+	height:50px;
+}
+footer {
+	margin:1em 0;
+	border-top:1px solid #808080;
+	padding-top:1em;
+	color:#808080;
+	font-size:12px;
+}
+footer a {
+	color:#555;
+}
+.minor {
+	font-size:12px;
+}

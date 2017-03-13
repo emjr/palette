@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset='utf-8'>
+<!--
+Copyright (c), Brian Grinstead, http://briangrinstead.com
+
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+"Software"), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+-->
+<!--
+version .1 - modified the tinycolor.js demo to help build color palettes
+TODO
+*better design (needed something fast, so it is what it is for now)
+*implement readable hexcodes over the color boxes
+*shorten hexcode (3 alphanumeric if possible)
+*clear input
+*game palette function
+https://gamedevelopment.tutsplus.com/articles/picking-a-color-palette-for-your-games-artwork--gamedev-1174
+IF hues do not equal each other
+THEN set saturations to match each other
+
+AND set brightnesses to match each other
+ELSE IF saturations do not equal each other
+
+THEN set hues to match each other
+AND set brightnesses to match each other
+
+ELSE IF brightnesses do not equal each other
+THEN set hues to equal each other
+AND set saturations to equal each other
+-->
+<title>Color Palette Generator</title>
+<link type="text/css" rel="stylesheet" href="a.css">
+<script src='jquery-3.1.1.min.js'></script>
+<script src='tinycolor.js'></script>
+<script src='mix.js'></script>
+<script>
+$(document).ready(function(evnt) {
+	//generate special color palette
+	function gen_palette(id, column_index, color_value) {
+		var t2 = mix.gradient(color_value, '#fff', .4);
+		var t1 = mix.gradient(color_value, '#fff', .2);
+		var s1 = mix.gradient(color_value, '#000', .2);
+		var s2 = mix.gradient(color_value, '#000', .4);
+
+		$(id + " tr.tint2 td:eq(" + column_index + ")").html('<div style="background:' + t2 + ';"/>' + t2);
+		$(id + " tr.tint1 td:eq(" + column_index + ")").html('<div style="background:' + t1 + ';"/>' + t1);
+		$(id + " tr.core td:eq(" + column_index + ")").html('<div style="background:' + color_value + ';"/>' + color_value);
+		$(id + " tr.shade1 td:eq(" + column_index + ")").html('<div style="background:' + s1 + ';"/>' + s1);
+		$(id + " tr.shade2 td:eq(" + column_index + ")").html('<div style="background:' + s2 + ';"/>' + s2);
+	}
+
+	//dynamic table generator
+	function create_colortable(table_name, columns) {
+		var tr_classes = ['tint2', 'tint1', 'core', 'shade1', 'shade2'];
+		var data = '<table id="ct_' + table_name + '">';
+		data += '<caption>' + table_name + '</caption>';
+
+		for (var r = 0; r < tr_classes.length; r++){
+			data += '<tr class="' + tr_classes[r] + '">';
+
+			for (var c = 0; c < columns; c++) {
+				data += '<td></td>';
+			}
+
+			data += '</tr>';
+		}
+
+		return data;
+	}
+
+	function create_palette_for_array(id, color_data) {
+		var color_array = color_data.map(function(t) { return t.toHexString(); });
+
+		for (var i = 0; i < color_array.length; i++) {
+			gen_palette(id, i, color_array[i]);
+			
+		}
+	}
+
+	var adjust = 20;
+
+	//add html to page
+	$('#color-mod th').not(':eq(0), :eq(1)').append('<small>(20)</small>');
+	$('footer').before(create_colortable('hue-spin', 9));
+	$('footer').before(create_colortable('monochromatic', tinycolor('#000').monochromatic().length));//using a test color so we dynamically get how many columns we need
+	$('footer').before(create_colortable('analogous', tinycolor('#000').analogous().length));
+	$('footer').before(create_colortable('triad', tinycolor('#000').triad().length));
+	$('footer').before(create_colortable('tetrad', tinycolor('#000').tetrad().length));
+	$('footer').before(create_colortable('splitcomplement', tinycolor('#000').splitcomplement().length));
+	
+
+	function colorChange(colour) {
+		var tiny = tinycolor(colour);
+
+		//hide table if color is invalid
+		$("table").toggleClass("invisible", !tiny.isValid());
+
+		var greyscale_value = tinycolor(colour).greyscale().toHexString();
+		var complement_value = tinycolor(colour).complement().toHexString();
+		var lighten_value = tinycolor(colour).lighten(adjust).toHexString();//100 would be white
+		var brighten_value = tinycolor(colour).brighten(adjust).toHexString();
+		var darken_value = tinycolor(colour).darken(adjust).toHexString();//100 would be black
+		var desaturate_value = tinycolor(colour).desaturate(adjust).toHexString();//100 would equal greyscale()
+		var saturate_value = tinycolor(colour).saturate(adjust).toHexString();
+
+		var monochromatic_value = tiny.monochromatic();
+		var analogous_value = tiny.analogous();
+		var triad_value = tiny.triad();
+		var tetrad_value = tiny.tetrad();
+		var splitcomplement_value = tiny.splitcomplement();
+		
+		$('html').css("background", tiny.toHexString());
+		$('#color-data').css("border-color", tiny.toHexString());
+		$('#color-data caption').html('</strong>' + (tiny.toName() || "") + '</strong> ' + tiny.toString());
+		$('#color-data td:eq(0)').html(tiny.toHexString() + '<br>' + tiny.toHexString().substr(1));//TODO - shorten hex if possible
+		$('#color-data td:eq(1)').html(tiny.toRgbString() + '<br>' + tiny.toPercentageRgbString());
+		$('#color-data td:eq(2)').html(tiny.toHslString());
+		$('#color-data td:eq(3)').html(tiny.toHsvString());
+		
+		gen_palette('#color-mod', 0, greyscale_value);		
+		gen_palette('#color-mod', 1, complement_value);
+		gen_palette('#color-mod', 2, lighten_value);
+		gen_palette('#color-mod', 3, brighten_value);
+		gen_palette('#color-mod', 4, darken_value);
+		gen_palette('#color-mod', 5, desaturate_value);
+		gen_palette('#color-mod', 6, saturate_value);
+		
+		//hue shift
+		for (var i = 0; i < 9; i++) {
+			var spinned = tinycolor(colour).spin(i * 40).toHexString();
+			$("#ct_hue-spin").find(".hs" + i).css("background-color", spinned);
+			gen_palette('#ct_hue-spin', i, spinned);
+		}
+
+		create_palette_for_array('#ct_monochromatic', monochromatic_value);
+		create_palette_for_array('#ct_analogous', analogous_value);
+		create_palette_for_array('#ct_triad', triad_value);
+		create_palette_for_array('#ct_tetrad', tetrad_value);
+		create_palette_for_array('#ct_splitcomplement', splitcomplement_value);
+	}
+
+
+	//update color on the fly from input
+	$("#color").bind("keyup change", function() {
+		colorChange($(this).val());
+	});
+
+	//set random color on load
+	var randomcolor = tinycolor.random();
+	colorChange(randomcolor.toRgb());
+
+	//clickable examples of valid input
+	$("#try a").click(function() {
+		$("#color").val($(this).text()).trigger("change");
+		return false;
+	});
+});
+</script>
+</head>
+
+<body>
+<header>
+<p>Enter a color: <input type="text" placeholder="any color" id='color'><!--button id="clearinput" type="reset" >&#215;</button-->
+
+<table id="color-data">
+<caption></caption>
+<tr><th>hex</th><th>rgb</th><th>hsl</th><th>hsv</th></tr>
+<tr><td></td><td></td><td></td><td></td></tr>
+</table>
+</header>
+
+
+
+<table id="color-mod">
+<tr>
+<th>Greyscale</th><th>Complement</th><th>Lighten</th><th>Brighten</th><th>Darken</th><th>Desaturate</th><th>Saturate</th>
+</tr>
+<tr class="tint2">
+<td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+</tr>
+<tr class="tint1">
+<td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+</tr>
+<tr class="core">
+<td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+</tr>
+<tr class="shade1">
+<td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+</tr>
+<tr class="shade2">
+<td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+</tr>
+</table>
+
+
+
+<footer>
+<p id="try" class="minor">You can try these values:
+<a href="#">red</a>
+<a href="#">0f0</a>
+<a href="#">rgb 255 128 128</a>
+<a href='#'>hsl(0, 100%, 50%)</a>
+<a href='#'>hsv 0, 100%, 50%</a>
+</p>
+<h3>Credits</h3>
+<p>Powered by <a href="http://bgrins.github.io/TinyColor/" rel="noreferrer">TinyColor</a>. Code based on the TinyColor HTML demo. <a href="https://github.com/modality/mix" rel="noreferrer">Mix.js</a> for the tint and shade ability.</p>
+<h3>Credits from TinyColor</h3>
+<p><a href='https://github.com/cloudhead/less.js/blob/master/lib/less/functions.js' rel="noreferrer">less.js</a> for some of the modification functions.
+<a href='https://github.com/infusion/jQuery-xcolor/blob/master/jquery.xcolor.js' rel="noreferrer">jQuery xColor</a> for some of the combination functions.
+<a href='http://www.w3.org/TR/css3-color/#svg-color' rel="noreferrer">w3.org</a> for the color list and parsing rules.
+<a href='http://mjijackson.com/2008/02/rgb-to-hsl-and-rgb-to-hsv-color-model-conversion-algorithms-in-javascript' rel="noreferrer">mjijackson.com</a> for the first stab at RGB / HSL / HSV converters.</p>
+</footer>
+</body>
+</html>
